@@ -7,13 +7,14 @@
      O GitHub Pages não deixa configurar cabeçalhos HTTP, então a CSP vai por
      <meta> — vale para tudo, menos frame-ancestors (clickjacking), que só
      funciona como cabeçalho de verdade. O que ela garante aqui: a página só
-     consegue falar com o formsubmit.co (connect-src), não carrega script,
+     consegue falar com o formsubmit.co (connect-src, e form-action para o
+     envio do currículo), não carrega script,
      plugin nem imagem de terceiro, e um <base> injetado não muda o destino
      dos links. O 'unsafe-inline' em script-src é obrigatório porque todo o
      JS e o CSS deste site são inline — trocar por hash quebraria a cada
      edição, e não há superfície de XSS aqui (nada do que o visitante digita
      vira HTML: os textos entram por textContent). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src https://formsubmit.co; form-action 'self'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
 <!-- links externos (Maps) recebem só a origem, nunca a URL cheia -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <!-- protótipo em avaliação: fora dos buscadores até subir no domínio oficial -->
@@ -1660,7 +1661,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
     </button>
   </div>
 
-  <form class="cotacao-forma" id="trabalhe-forma" novalidate>
+  <form class="cotacao-forma" id="trabalhe-forma" method="POST" enctype="multipart/form-data" novalidate>
     <p class="cotacao-intro" data-en="Come be part of a dynamic, innovative team. Fill in your details and attach your resume.">Venha fazer parte de um time dinâmico e inovador. Preencha seus dados e anexe seu currículo.</p>
 
     <div class="cotacao-falha" role="alert">
@@ -1733,6 +1734,14 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       <label for="trabalhe-isca" data-en="Do not fill in this field">Não preencha este campo</label>
       <input id="trabalhe-isca" name="_honey" type="text" tabindex="-1" autocomplete="off">
     </div>
+
+    <!-- controles do FormSubmit: assunto, endereço de retorno e origem são
+         preenchidos pelo <script> no momento do envio -->
+    <input type="hidden" name="_subject" value="Nova candidatura">
+    <input type="hidden" name="_template" value="table">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="hidden" name="_next" value="">
+    <input type="hidden" name="Origem" value="">
 
     <label class="trabalhe-consentimento" for="trabalhe-consentimento">
       <input id="trabalhe-consentimento" type="checkbox" aria-describedby="erro-trabalhe-consentimento" required>
@@ -2142,14 +2151,18 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
   })();
 
   /* ============ TRABALHE CONOSCO: modal de envio de currículo ============
-     Mesmo padrão do modal de cotação, mas o envio leva um arquivo — por isso
-     vai como multipart/FormData (não JSON) para a rota de AJAX do FormSubmit,
-     que aceita os dois formatos e anexa qualquer <input type="file"> presente. */
+     Diferente dos outros dois modais, este NÃO usa fetch. A rota AJAX do
+     FormSubmit aceitava o multipart e respondia success, mas descartava o
+     arquivo: o e-mail chegava com nome, cargo e cidade e sem o currículo
+     (confirmado num envio de teste em 15/09/2026). Anexo, na documentação
+     deles, é só por POST de formulário tradicional com
+     enctype="multipart/form-data" — então a página sai para o formsubmit.co
+     e volta pelo _next, que reabre este modal já na tela de sucesso. */
 
   /* Mesmo endereço de COTACAO_DESTINO: o FormSubmit confirma por endereço, não
      por formulário, então a mesma confirmação já vale para os dois envios. */
   var TRABALHE_DESTINO = 'comercial@hargusbrazil.com';
-  var TRABALHE_TAMANHO_MAX = 5 * 1024 * 1024; /* 5MB — teto de anexo do FormSubmit */
+  var TRABALHE_TAMANHO_MAX = 5 * 1024 * 1024; /* o FormSubmit aceita até 10MB somando os anexos; 5MB deixa folga */
   /* o accept="" do <input> é só sugestão do seletor de arquivos: o navegador
      deixa escolher "todos os arquivos" e mandar o que for. Esta lista é a que
      de fato barra. Continua sendo validação de cliente — quem montar o POST
@@ -2161,7 +2174,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
 
   if (dialogoTrabalhe && typeof dialogoTrabalhe.showModal === 'function') (function(){
     var forma = document.getElementById('trabalhe-forma');
-    var isca = document.getElementById('trabalhe-isca');
+    forma.action = 'https://formsubmit.co/' + TRABALHE_DESTINO;
     var arquivo = document.getElementById('trabalhe-curriculo');
     var consentimento = document.getElementById('trabalhe-consentimento');
     var erroConsentimento = document.getElementById('erro-trabalhe-consentimento');
@@ -2268,11 +2281,13 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
     });
 
     forma.addEventListener('submit', function(e){
-      e.preventDefault();
       var validoCampos = nomes.map(validar).every(Boolean);
       var validoArquivo = validarArquivo();
       var validoConsentimento = validarConsentimento();
       if (!(validoCampos && validoArquivo && validoConsentimento)){
+        /* só aqui o envio é cancelado: com tudo válido, o POST nativo precisa
+           seguir — um preventDefault no topo derrubava o envio inteiro */
+        e.preventDefault();
         if (!validoCampos){
           campos[nomes.filter(function(n){
             return campos[n].getAttribute('aria-invalid') === 'true';
@@ -2285,32 +2300,31 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
         return;
       }
 
-      var dados = new FormData(forma);
-      dados.set('_subject', 'Nova candidatura — ' + campos.nome.value.trim());
-      dados.set('_template', 'table');
-      dados.set('_captcha', 'false');
-      dados.set('_honey', isca.value);
-      dados.append('Origem', window.location.href);
-
+      /* Tudo válido: sem preventDefault, o navegador segue com o POST do
+         formulário — arquivo incluído. Só os controles do FormSubmit que
+         dependem do momento são preenchidos aqui. */
+      forma.elements['_subject'].value = 'Nova candidatura — ' + campos.nome.value.trim();
+      forma.elements['_next'].value = location.origin + location.pathname + '?candidatura=enviada';
+      forma.elements['Origem'].value = location.href;
       dialogoTrabalhe.dataset.falhou = 'nao';
       dialogoTrabalhe.dataset.estado = 'enviando';
+    });
 
-      fetch('https://formsubmit.co/ajax/' + TRABALHE_DESTINO, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: dados
-      }).then(function(r){
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      }).then(function(resposta){
-        if (resposta && String(resposta.success) === 'false'){
-          throw new Error(resposta.message || 'envio recusado');
-        }
-        dialogoTrabalhe.dataset.estado = 'sucesso';
-      }).catch(function(){
+    /* Volta do FormSubmit: o _next traz ?candidatura=enviada. O modal abre já na
+       tela de sucesso e a URL é limpa, para um recarregar não repetir o aviso. */
+    if (new URLSearchParams(location.search).get('candidatura') === 'enviada'){
+      history.replaceState(null, '', location.pathname + location.hash);
+      dialogoTrabalhe.dataset.estado = 'sucesso';
+      dialogoTrabalhe.showModal();
+      travarPagina(true);
+    }
+
+    /* "Voltar" a partir do formsubmit.co pode restaurar esta página do cache com o
+       modal parado em "enviando"; nesse caso ele volta para o formulário */
+    window.addEventListener('pageshow', function(e){
+      if (e.persisted && dialogoTrabalhe.dataset.estado === 'enviando'){
         dialogoTrabalhe.dataset.estado = 'formulario';
-        dialogoTrabalhe.dataset.falhou = 'sim';
-      });
+      }
     });
   })();
 
