@@ -1737,7 +1737,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
 
     <!-- controles do FormSubmit: assunto, endereço de retorno e origem são
          preenchidos pelo <script> no momento do envio -->
-    <input type="hidden" name="_subject" value="Nova candidatura">
+    <input type="hidden" name="_subject" value="Currículo Enviado">
     <input type="hidden" name="_template" value="table">
     <input type="hidden" name="_captcha" value="false">
     <input type="hidden" name="_next" value="">
@@ -2303,7 +2303,8 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       /* Tudo válido: sem preventDefault, o navegador segue com o POST do
          formulário — arquivo incluído. Só os controles do FormSubmit que
          dependem do momento são preenchidos aqui. */
-      forma.elements['_subject'].value = 'Nova candidatura — ' + campos.nome.value.trim();
+      /* assunto: Currículo Enviado - <cargo> - <nome> (os dois campos são obrigatórios) */
+      forma.elements['_subject'].value = 'Currículo Enviado - ' + campos.cargo.value.trim() + ' - ' + campos.nome.value.trim();
       forma.elements['_next'].value = location.origin + location.pathname + '?candidatura=enviada';
       forma.elements['Origem'].value = location.href;
       dialogoTrabalhe.dataset.falhou = 'nao';
