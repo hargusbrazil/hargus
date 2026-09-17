@@ -1,0 +1,107 @@
+/* ============ CARTÃO DIGITAL HARGUS ============
+   Página aberta pelo QR code dos cartões de visita. Este arquivo vale para os
+   quatro fundadores; cada pasta (/luiz, /tiago, /everton, /eros) só traz os
+   próprios dados. Paleta e fontes são as mesmas do site. */
+:root{
+  --verde:#003527;
+  --verde-escuro:#001a13;
+  --roxo:#330243;
+  --verde-claro:#3E9E7E;
+  --branco:#FFFFFF;
+  --fonte-titulo:'Cormorant Garamond', Georgia, serif;
+  --fonte-corpo:'Inter', -apple-system, 'Segoe UI', sans-serif;
+}
+*,*::before,*::after{ box-sizing:border-box; }
+html{ background:var(--verde-escuro); }
+body{
+  margin:0;
+  font-family:var(--fonte-corpo);
+  color:var(--branco);
+  background:var(--verde-escuro);
+  -webkit-font-smoothing:antialiased;
+}
+a{ -webkit-tap-highlight-color:transparent; }
+:focus-visible{ outline:3px solid var(--verde-claro); outline-offset:3px; border-radius:6px; }
+
+/* no celular ocupa a tela; no computador vira uma coluna de celular centrada */
+.cartao{
+  max-width:440px; margin:0 auto;
+  min-height:100vh; min-height:100svh;
+  display:flex; flex-direction:column;
+  /* verde chapado no topo para a onda encaixar sem emenda, escurecendo depois */
+  background:linear-gradient(180deg, var(--verde) 0, var(--verde) 380px, var(--verde-escuro) 100%);
+}
+
+/* ---- topo branco com o logo e a onda roxa da marca ---- */
+.topo{ position:relative; background:var(--branco); padding:30px 24px 78px; text-align:center; }
+.logo{ width:190px; max-width:62%; height:auto; display:inline-block; }
+.onda{ position:absolute; left:0; bottom:-1px; width:100%; height:78px; display:block; }
+.onda-roxa{ fill:var(--roxo); }
+.onda-verde{ fill:var(--verde); }
+
+/* ---- foto, nome e cargo ---- */
+.perfil{ position:relative; z-index:1; text-align:center; padding:0 24px; margin-top:-62px; }
+.foto{
+  width:136px; height:136px; margin:0 auto 18px;
+  border-radius:30px; border:4px solid var(--roxo);
+  object-fit:cover; display:block;
+  background:var(--verde);
+  box-shadow:0 18px 40px rgba(0,0,0,.38);
+}
+/* enquanto a foto não chega: iniciais sobre o gradiente institucional */
+.foto--iniciais{
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--fonte-titulo); font-size:54px; font-weight:500;
+  background:linear-gradient(135deg, var(--verde) 0%, var(--roxo) 100%);
+  color:var(--branco);
+}
+.nome{ margin:0 0 7px; font-size:1.75rem; font-weight:600; line-height:1.15; letter-spacing:-.01em; }
+.cargo{
+  margin:0; font-size:.72rem; font-weight:600; line-height:1.5;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--verde-claro);
+}
+
+/* ---- ação principal: salvar na agenda ---- */
+.salvar{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin:26px 24px 0; padding:16px 20px; border-radius:14px;
+  background:var(--branco); color:var(--verde);
+  font-size:.8rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  text-decoration:none; box-shadow:0 10px 26px rgba(0,0,0,.28);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.salvar svg{ width:20px; height:20px; flex:none; }
+.salvar:active{ transform:translateY(1px); box-shadow:0 6px 16px rgba(0,0,0,.28); }
+
+/* ---- contatos e unidades ---- */
+.links{ list-style:none; margin:14px 0 0; padding:0 24px; display:grid; gap:10px; }
+.link{
+  display:flex; align-items:center; gap:14px;
+  padding:12px 14px; border-radius:16px;
+  background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.07);
+  color:var(--branco); text-decoration:none;
+  transition:background .2s ease, border-color .2s ease;
+}
+.link:hover, .link:focus-visible{ background:rgba(0,0,0,.42); border-color:rgba(62,158,126,.55); }
+.icone{
+  flex:none; width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--verde-claro); color:var(--verde-escuro);
+}
+.icone svg{ width:22px; height:22px; }
+.texto{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.rotulo{ font-size:.64rem; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:rgba(255,255,255,.55); }
+.valor{ margin-top:3px; font-size:.95rem; font-weight:500; overflow-wrap:anywhere; }
+.seta{ flex:none; width:18px; height:18px; color:rgba(255,255,255,.35); }
+
+.unidades{ padding:30px 0 0; }
+.unidades h2{
+  margin:0 24px 14px; text-align:center;
+  font-family:var(--fonte-titulo); font-size:1.65rem; font-weight:400; font-style:italic;
+}
+.unidade .valor{ font-size:.9rem; line-height:1.45; }
+
+.rodape{
+  margin-top:auto; padding:34px 24px 28px; text-align:center;
+  font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.4);
+}

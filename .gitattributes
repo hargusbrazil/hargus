@@ -1,0 +1,2 @@
+# vCard exige quebra de linha CRLF: o Git nao deve converter esses arquivos
+*.vcf -text

@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Rodrigues;Everton;;;
+FN:Everton Rodrigues
+ORG:HARGUS Shipping Brazil
+TITLE:Head of Pricing & Procurement
+TEL;TYPE=CELL,VOICE:+55 41 98876-6004
+EMAIL;TYPE=WORK,INTERNET:everton@hargusbrazil.com
+URL:https://hargusbrazil.com.br/
+ADR;TYPE=WORK:;;Av. João Gualberto\, 1342 - Juvevê;Curitiba;PR;80030-000;Brasil
+ADR;TYPE=WORK:;;R. Domingos Rampelotti\, 3601 - São Roque;Itajaí;SC;88317-600;Brasil
+END:VCARD

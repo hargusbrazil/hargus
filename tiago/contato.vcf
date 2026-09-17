@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Machado;Tiago;;;
+FN:Tiago Machado
+ORG:HARGUS Shipping Brazil
+TITLE:Head Operations & Business
+TEL;TYPE=CELL,VOICE:+55 41 99898-2362
+EMAIL;TYPE=WORK,INTERNET:tiago@hargusbrazil.com
+URL:https://hargusbrazil.com.br/
+ADR;TYPE=WORK:;;Av. João Gualberto\, 1342 - Juvevê;Curitiba;PR;80030-000;Brasil
+ADR;TYPE=WORK:;;R. Domingos Rampelotti\, 3601 - São Roque;Itajaí;SC;88317-600;Brasil
+END:VCARD
