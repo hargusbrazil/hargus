@@ -14,7 +14,7 @@
      JS e o CSS deste site são inline — trocar por hash quebraria a cada
      edição, e não há superfície de XSS aqui (nada do que o visitante digita
      vira HTML: os textos entram por textContent). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src https://api.web3forms.com; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
 <!-- links externos (Maps) recebem só a origem, nunca a URL cheia -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title data-en="HARGUS Shipping Brazil — Connecting you to your destination">HARGUS Shipping Brazil — Conectamos você ao seu destino</title>
@@ -1971,7 +1971,12 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
   /* Para onde a demanda chega. O FormSubmit só passa a entregar depois que o
      dono deste endereço clicar uma vez no e-mail de confirmação que ele manda
      no primeiro envio — até lá o formulário mostra o aviso de falha. */
-  var COTACAO_DESTINO = 'comercial@hargusbrazil.com';
+  /* Web3Forms: a caixa de destino não mora aqui, e sim no painel deles,
+     presa à chave. Trocar de destino é gerar outra chave, não editar este
+     arquivo. A chave é pública por natureza — fica visível no fonte de
+     qualquer forma. Cotação e dúvida dividem a mesma, porque entregam na
+     mesma caixa. */
+  var CHAVE_FORMULARIOS = 'c541f48a-bd68-4894-ba9b-c9fed1900406';
 
   /* Campos opcionais da carga: [id do campo, rotulo que aparece no e-mail].
      Nenhum entra na validacao; so os preenchidos viram linha na mensagem. */
@@ -2105,10 +2110,11 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       dialogo.dataset.estado = 'enviando';
 
       var corpo = {
-        _subject: 'Nova solicitação de cotação — ' + dados.nome,
-        _template: 'table',
-        _captcha: 'false',
-        _honey: isca.value,
+        access_key: CHAVE_FORMULARIOS,
+        subject: 'Nova solicitação de cotação — ' + dados.nome,
+        from_name: 'Site HARGUS',
+        replyto: dados.email,
+        botcheck: isca.value,
         Nome: dados.nome,
         Telefone: dados.telefone,
         'E-mail': dados.email,
@@ -2122,7 +2128,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       });
       corpo.Origem = window.location.href;
 
-      fetch('https://formsubmit.co/ajax/' + COTACAO_DESTINO, {
+      fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(corpo)
@@ -2157,8 +2163,10 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
      enctype="multipart/form-data" — então a página sai para o formsubmit.co
      e volta pelo _next, que reabre este modal já na tela de sucesso. */
 
-  /* Mesmo endereço de COTACAO_DESTINO: o FormSubmit confirma por endereço, não
-     por formulário, então a mesma confirmação já vale para os dois envios. */
+  /* O currículo é o único formulário que continua no FormSubmit: ele leva anexo,
+     e o plano gratuito do Web3Forms não aceita arquivo. Esta caixa já está
+     confirmada lá — a confirmação do FormSubmit vale por endereço, não por
+     formulário. */
   var TRABALHE_DESTINO = 'comercial@hargusbrazil.com';
   var TRABALHE_TAMANHO_MAX = 5 * 1024 * 1024; /* o FormSubmit aceita até 10MB somando os anexos; 5MB deixa folga */
   /* o accept="" do <input> é só sugestão do seletor de arquivos: o navegador
@@ -2329,9 +2337,9 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
 
   /* ============ TIRE SUA DÚVIDA: modal de contato geral ============
      Mesmo padrão dos outros dois modais. Cai na mesma caixa funcional
-     (DUVIDA_DESTINO) — dali um representante liga o WhatsApp manualmente
+     da cotação — dali um representante liga o WhatsApp manualmente
      para o número deixado aqui, não é integração automática. */
-  var DUVIDA_DESTINO = 'comercial@hargusbrazil.com';
+  /* a dúvida usa a mesma CHAVE_FORMULARIOS da cotação */
   var dialogoDuvida = document.getElementById('duvida');
 
   if (dialogoDuvida && typeof dialogoDuvida.showModal === 'function') (function(){
@@ -2432,10 +2440,11 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       dialogoDuvida.dataset.estado = 'enviando';
 
       var corpo = {
-        _subject: 'Nova dúvida recebida — ' + dados.nome,
-        _template: 'table',
-        _captcha: 'false',
-        _honey: isca.value,
+        access_key: CHAVE_FORMULARIOS,
+        subject: 'Nova dúvida recebida — ' + dados.nome,
+        from_name: 'Site HARGUS',
+        replyto: dados.email,
+        botcheck: isca.value,
         Nome: dados.nome,
         Telefone: dados.telefone,
         'E-mail': dados.email,
@@ -2443,7 +2452,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       };
       corpo.Origem = window.location.href;
 
-      fetch('https://formsubmit.co/ajax/' + DUVIDA_DESTINO, {
+      fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(corpo)
