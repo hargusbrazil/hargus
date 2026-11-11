@@ -6,7 +6,8 @@
 <!-- ============ POLÍTICA DE CONTEÚDO ============
      O GitHub Pages não deixa configurar cabeçalhos HTTP, então a CSP vai por
      <meta> — vale para tudo, menos frame-ancestors (clickjacking), que só
-     funciona como cabeçalho de verdade. O que ela garante aqui: a página só
+     funciona como cabeçalho de verdade (a defesa contra isso está logo abaixo,
+     em JS). O que ela garante aqui: a página só
      consegue falar com o formsubmit.co (connect-src, e form-action para o
      envio do currículo), não carrega script,
      plugin nem imagem de terceiro, e um <base> injetado não muda o destino
@@ -14,17 +15,65 @@
      JS e o CSS deste site são inline — trocar por hash quebraria a cada
      edição, e não há superfície de XSS aqui (nada do que o visitante digita
      vira HTML: os textos entram por textContent). -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src https://api.web3forms.com; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self'; connect-src https://api.web3forms.com; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
 <!-- links externos (Maps) recebem só a origem, nunca a URL cheia -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- ============ ANTI-CLICKJACKING ============
+     frame-ancestors não vale em <meta> e o GitHub Pages não manda
+     X-Frame-Options, então a defesa fica no cliente (receita da OWASP): o
+     <body> nasce escondido e só aparece quando a página confirma que não está
+     dentro de um <iframe> de outro site. Emoldurada, ela continua invisível
+     (nada para o visitante clicar às cegas) e ainda tenta sair da moldura.
+     O <noscript> devolve o <body> a quem navega sem JavaScript. -->
+<style id="anti-clickjack">body{display:none !important;}</style>
+<script>
+(function(){
+  if (window.self === window.top){
+    var estilo = document.getElementById('anti-clickjack');
+    estilo.parentNode.removeChild(estilo);
+  } else {
+    try { window.top.location = window.self.location; } catch (e) {}
+  }
+})();
+</script>
+<noscript><style>body{display:block !important;}</style></noscript>
 <title data-en="HARGUS Shipping Brazil — Connecting you to your destination">HARGUS Shipping Brazil — Conectamos você ao seu destino</title>
 <meta name="description" data-en-content="Cargo forwarding and logistics solutions in Curitiba/PR, Brazil. National and international freight, customs brokerage, import, export, and ANVISA consulting." content="Agenciamento de cargas e soluções logísticas em Curitiba/PR. Frete nacional e internacional, assessoria aduaneira, importação, exportação e consultoria ANVISA.">
 <link rel="icon" type="image/png" href="favicon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- as duas fontes que a primeira dobra usa, pré-carregadas para o texto não
+     piscar; os @font-face ficam no topo do <style> -->
+<link rel="preload" href="fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 
+/* ============ FONTES ============
+   Arquivos variáveis (um por família e subconjunto), baixados do Google Fonts
+   e servidos daqui mesmo: o visitante não toca em fonts.googleapis.com nem em
+   fonts.gstatic.com — o IP dele não vai para o Google, o que importa para a
+   LGPD — e a CSP fecha font-src em 'self'. O unicode-range faz o navegador
+   baixar só o subconjunto que a página usa: o latin cobre todo o português; o
+   latin-ext só entra se aparecer um caractere fora dele. Sem itálico próprio:
+   o .accent em itálico é sintetizado pelo navegador, como já era antes. */
+@font-face{
+  font-family:'Cormorant Garamond'; font-style:normal; font-weight:300 600; font-display:swap;
+  src:url("fonts/cormorant-garamond-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face{
+  font-family:'Cormorant Garamond'; font-style:normal; font-weight:300 600; font-display:swap;
+  src:url("fonts/cormorant-garamond-latin-ext.woff2") format("woff2");
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face{
+  font-family:'Inter'; font-style:normal; font-weight:300 700; font-display:swap;
+  src:url("fonts/inter-latin.woff2") format("woff2");
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face{
+  font-family:'Inter'; font-style:normal; font-weight:300 700; font-display:swap;
+  src:url("fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 /* ============ TOKENS ============ */
 :root{
   /* paleta oficial (manual de marca) */
