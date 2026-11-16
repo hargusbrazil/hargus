@@ -18,6 +18,29 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; media-src 'self'; connect-src https://api.web3forms.com; form-action 'self' https://formsubmit.co; base-uri 'none'; object-src 'none'">
 <!-- links externos (Maps) recebem só a origem, nunca a URL cheia -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
+<!-- ============ COMPARTILHAMENTO ============
+     Sem estas tags, o link colado no WhatsApp, LinkedIn ou e-mail aparece
+     como URL pelada. O título e a descrição repetem os de cima de propósito:
+     duas fontes para a mesma coisa divergem na primeira edição distraída.
+     A imagem precisa de URL absoluta — os rastreadores não resolvem caminho
+     relativo — e mede 1200x630, que é o formato que as redes recortam sem
+     cortar nada importante. -->
+<link rel="canonical" href="https://hargusbrazil.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HARGUS Shipping Brazil">
+<meta property="og:url" content="https://hargusbrazil.com.br/">
+<meta property="og:title" content="HARGUS Shipping Brazil — Conectamos você ao seu destino">
+<meta property="og:description" content="Agenciamento de cargas e soluções logísticas em Curitiba/PR. Frete nacional e internacional, assessoria aduaneira, importação, exportação e consultoria ANVISA.">
+<meta property="og:image" content="https://hargusbrazil.com.br/compartilhar.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Navio porta-contêineres ao entardecer, visto da água" data-en-content="Container ship at dusk, seen from the water">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HARGUS Shipping Brazil — Conectamos você ao seu destino">
+<meta name="twitter:description" content="Agenciamento de cargas e soluções logísticas em Curitiba/PR. Frete nacional e internacional, assessoria aduaneira, importação, exportação e consultoria ANVISA.">
+<meta name="twitter:image" content="https://hargusbrazil.com.br/compartilhar.jpg">
 <!-- ============ ANTI-CLICKJACKING ============
      frame-ancestors não vale em <meta> e o GitHub Pages não manda
      X-Frame-Options, então a defesa fica no cliente (receita da OWASP): o
