@@ -2040,15 +2040,50 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
      FormSubmit (o site é estático, não há servidor próprio para receber POST)
      e a resposta volta por e-mail — o site não faz mais ponte para o WhatsApp. */
 
-  /* Para onde a demanda chega. O FormSubmit só passa a entregar depois que o
-     dono deste endereço clicar uma vez no e-mail de confirmação que ele manda
-     no primeiro envio — até lá o formulário mostra o aviso de falha. */
   /* Web3Forms: a caixa de destino não mora aqui, e sim no painel deles,
      presa à chave. Trocar de destino é gerar outra chave, não editar este
      arquivo. A chave é pública por natureza — fica visível no fonte de
-     qualquer forma. Cotação e dúvida dividem a mesma, porque entregam na
-     mesma caixa. */
-  var CHAVE_FORMULARIOS = 'c541f48a-bd68-4894-ba9b-c9fed1900406';
+     qualquer forma. */
+
+  /* A dúvida vai só para o Tiago. */
+  var CHAVE_DUVIDA = 'c541f48a-bd68-4894-ba9b-c9fed1900406';
+
+  /* A cotação chega nas três caixas do comercial. Não há cópia nem segundo
+     destinatário no plano gratuito do Web3Forms — uma chave entrega numa
+     caixa e pronto —, então a mesma mensagem sai uma vez por chave. A
+     primeira é a principal: é ela que decide se o visitante vê sucesso ou
+     falha. As outras são cópias; se uma delas não sair, quem preencheu o
+     formulário já fez a parte dele e não precisa ser avisado. */
+  var CHAVES_COTACAO = [
+    'c541f48a-bd68-4894-ba9b-c9fed1900406', /* tiago@   — principal */
+    'a069176c-8d9c-455c-9f62-626f0ab78bd9', /* everton@ — cópia */
+    'b67b3d5d-ad67-46fe-899b-f45e2bbfb0a3'  /* Luiz@    — cópia */
+  ];
+
+  /* Um envio ao Web3Forms. A chave entra aqui e não no corpo, para o mesmo
+     corpo poder ser reenviado a outra caixa sem ser remontado. */
+  function enviarWeb3(chave, corpo){
+    var carga = {};
+    for (var campo in corpo){
+      if (Object.prototype.hasOwnProperty.call(corpo, campo)) carga[campo] = corpo[campo];
+    }
+    carga.access_key = chave;
+    return fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(carga)
+    }).then(function(r){
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(resposta){
+      /* responde 200 mesmo quando recusa (chave inválida, isca preenchida):
+         quem decide é o campo success */
+      if (resposta && String(resposta.success) === 'false'){
+        throw new Error(resposta.message || 'envio recusado');
+      }
+      return resposta;
+    });
+  }
 
   /* Campos opcionais da carga: [id do campo, rotulo que aparece no e-mail].
      Nenhum entra na validacao; so os preenchidos viram linha na mensagem. */
@@ -2182,7 +2217,6 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       dialogo.dataset.estado = 'enviando';
 
       var corpo = {
-        access_key: CHAVE_FORMULARIOS,
         subject: 'Nova solicitação de cotação — ' + dados.nome,
         from_name: 'Site HARGUS',
         replyto: dados.email,
@@ -2200,19 +2234,13 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       });
       corpo.Origem = window.location.href;
 
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(corpo)
-      }).then(function(r){
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      }).then(function(resposta){
-        /* o FormSubmit responde 200 mesmo quando recusa (endereço ainda não
-           confirmado, isca preenchida): quem decide é o campo success */
-        if (resposta && String(resposta.success) === 'false'){
-          throw new Error(resposta.message || 'envio recusado');
-        }
+      /* as cópias saem junto e não seguram o resultado: um erro numa delas
+         não pode virar aviso de falha para quem preencheu o formulário */
+      CHAVES_COTACAO.slice(1).forEach(function(chave){
+        enviarWeb3(chave, corpo).catch(function(){});
+      });
+
+      enviarWeb3(CHAVES_COTACAO[0], corpo).then(function(){
         dialogo.dataset.estado = 'sucesso';
         /* o foco acompanha a troca de tela: o botão de fechar é o que sobra */
         var fecharSucesso = document.getElementById('cotacao-sucesso-fechar');
@@ -2411,7 +2439,6 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
      Mesmo padrão dos outros dois modais. Cai na mesma caixa funcional
      da cotação — dali um representante liga o WhatsApp manualmente
      para o número deixado aqui, não é integração automática. */
-  /* a dúvida usa a mesma CHAVE_FORMULARIOS da cotação */
   var dialogoDuvida = document.getElementById('duvida');
 
   if (dialogoDuvida && typeof dialogoDuvida.showModal === 'function') (function(){
@@ -2512,7 +2539,6 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       dialogoDuvida.dataset.estado = 'enviando';
 
       var corpo = {
-        access_key: CHAVE_FORMULARIOS,
         subject: 'Nova dúvida recebida — ' + dados.nome,
         from_name: 'Site HARGUS',
         replyto: dados.email,
@@ -2524,17 +2550,7 @@ body.menu-travado{ position:fixed; left:0; right:0; width:100%; overflow:hidden;
       };
       corpo.Origem = window.location.href;
 
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(corpo)
-      }).then(function(r){
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      }).then(function(resposta){
-        if (resposta && String(resposta.success) === 'false'){
-          throw new Error(resposta.message || 'envio recusado');
-        }
+      enviarWeb3(CHAVE_DUVIDA, corpo).then(function(){
         dialogoDuvida.dataset.estado = 'sucesso';
       }).catch(function(){
         dialogoDuvida.dataset.estado = 'formulario';
